@@ -89,10 +89,10 @@ if __name__ == "__main__":
 
         if len(agent.memory) > batch_size:
             agent.replay(batch_size)
-        if frm % SAVE_FREQ == 0:
-            agent.save("./Save/ARC_AVL_DQN_{}.h5".format(SaveCounter))
-            print('********************* model is saved: ./Save/ARC_AVL_DQN_{}.h5*****************'.format(SaveCounter))
-            SaveCounter += 1
+            if frm % SAVE_FREQ == 0:
+                agent.save("./Save/ARC_AVL_DQN_{}.h5".format(SaveCounter))
+                print('********************* model is saved: ./Save/ARC_AVL_DQN_{}.h5*****************'.format(SaveCounter))
+                SaveCounter += 1
         if IsTerminated:
             print("Training is terminated manually")
             break

@@ -10,6 +10,9 @@
 
 source /hb/home/mamoghad/Scripts/deepcars_DQN_initial_version/venv/bin/activate
 
+# This sets the virtual env path on top of python modules path to load the tensorflow from venv instead of python module env.
+export PYTHONPATH=/hb/home/mamoghad/Scripts/deepcars_DQN_initial_version/venv/lib/python3.6/site-packages:$PYTHONPATH
+
 cd /hb/home/mamoghad/Scripts/deepcars_DQN_initial_version/
 
 python DeepCars_DQN_Train.py
