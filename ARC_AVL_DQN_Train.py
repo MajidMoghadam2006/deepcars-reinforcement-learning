@@ -9,7 +9,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 
 FRAMES = 300000
-
+SAVE_FREQ = 10000
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
@@ -61,7 +61,7 @@ class DQNAgent:
     def save(self, name):
         self.model.save_weights(name)
 
-
+SaveCounter = 1
 if __name__ == "__main__":
 
     # for visualization disable next two lines
@@ -89,7 +89,10 @@ if __name__ == "__main__":
 
         if len(agent.memory) > batch_size:
             agent.replay(batch_size)
-
+        if frm % SAVE_FREQ == 0:
+            agent.save("./Save/ARC_AVL_DQN_{}.h5".format(SaveCounter))
+            print('********************* model is saved: ./Save/ARC_AVL_DQN_{}.h5*****************'.format(SaveCounter))
+            SaveCounter += 1
         if IsTerminated:
             print("Training is terminated manually")
             break
