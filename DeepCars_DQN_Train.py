@@ -78,18 +78,24 @@ if __name__ == "__main__":
 
     state = env.Reset()
     state = np.reshape(state, [1, state_size])
-    for frm in range(FRAMES):
+    episode_rewards = [0.0]
+    for step in range(FRAMES):
         action = agent.act(state)
-        next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount = env.update(action,True)
+        next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount , done = env.update(action,True)
         next_state = np.reshape(next_state, [1, state_size])
         agent.remember(state, action, reward, next_state)
         state = next_state
-        Accuracy = round(PassedCarsCount / (PassedCarsCount + HitCarsCount)*100,2)
-        print("Step: ", frm, "   Accuracy: ", Accuracy,"%")
+
+        episode_rewards[-1] += reward
+
+        if done:
+            Accuracy = round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100, 2)
+            print("Step: ", step, "   Accuracy: ", Accuracy, "%","   Epsode reward: ", episode_rewards[-1])
+            episode_rewards.append(0.0)
 
         if len(agent.memory) > batch_size:
             agent.replay(batch_size)
-            if frm % SAVE_FREQ == 0:
+            if step % SAVE_FREQ == 0:
                 agent.save("./Save/ARC_AVL_DQN_{}.h5".format(SaveCounter))
                 print('********************* model is saved: ./Save/ARC_AVL_DQN_{}.h5*****************'.format(SaveCounter))
                 SaveCounter += 1

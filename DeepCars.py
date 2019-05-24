@@ -237,10 +237,12 @@ class GridWorld:
             # Car['YCoord'] < StateVec[Car['XCoord']+1]:  ===>  For more than one car in the same lane, select the closer one
                 StateVec[Car['XCoord']+1] = Car['YCoord']    # Number of grid rectangles existing in between (including car rectangle)
 
+        done =False
         if self.PlayerHasHitBaddie(self.PlayerRect,self.OtherCarsVec):
             Reward = -100
             self.PassedCarsCount -= 1
             self.HitCarsCount += 1
+            done = True
         else:
             Reward = 1
 
@@ -294,7 +296,7 @@ class GridWorld:
                     IsTerminated = True
                     self.Terminate()
 
-        return StateVec, Reward, IsTerminated, self.HitCarsCount, self.PassedCarsCount
+        return StateVec, Reward, IsTerminated, self.HitCarsCount, self.PassedCarsCount, done
 
 if __name__ == "__main__":
 
