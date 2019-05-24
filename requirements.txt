@@ -1,3 +1,4 @@
 pygame
+pandas
+keras
 tensorflow
-

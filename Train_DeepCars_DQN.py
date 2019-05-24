@@ -7,8 +7,9 @@ from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
+import pandas as pd
 
-FRAMES = 300000
+MAX_STEPS = 300000
 SAVE_FREQ = 10000
 
 class DQNAgent:
@@ -79,7 +80,8 @@ if __name__ == "__main__":
     state = env.Reset()
     state = np.reshape(state, [1, state_size])
     episode_rewards = [0.0]
-    for step in range(FRAMES):
+    episode_steps = []
+    for step in range(MAX_STEPS):
         action = agent.act(state)
         next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount , done = env.update(action,True)
         next_state = np.reshape(next_state, [1, state_size])
@@ -89,6 +91,7 @@ if __name__ == "__main__":
         episode_rewards[-1] += reward
 
         if done:
+            episode_steps.append(step)
             Accuracy = round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100, 2)
             print("Step: ", step, "   Accuracy: ", Accuracy, "%","   Episode reward: ", episode_rewards[-1])
             episode_rewards.append(0.0)
@@ -103,10 +106,17 @@ if __name__ == "__main__":
             print("Training is terminated manually")
             break
 
-    # if e % 10 == 0:
+    print(len(episode_steps))
+    print(len(episode_rewards))
+    del episode_rewards[-1] # Remove last reward as the episode is unfinished
+    print(len(episode_rewards))
     agent.save("./Save/ARC_AVL_DQN.h5")
     print("The training is finished. Last model is saved in /Save/ARC_AVL_DQN.h5")
     print("Hit cars: ", HitCarsCount)
     print("Passed cars: ", PassedCarsCount)
     print("Accuracy ", round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100,2),"%")
     print("Use python Test_DeepCars_DQN.py to test the agent")
+    # Save log file:
+    dict = {'episode steps': episode_steps,'episode reward': episode_rewards}
+    df = pd.DataFrame(dict)
+    df.to_csv('./Save/Training_Log.csv')
