@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import random
 import numpy as np
 from DeepCars import GridWorld as envObj
@@ -7,9 +6,8 @@ from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
+import time, sys
 
-FRAMES = 300000
-SAVE_FREQ = 10000
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
@@ -39,8 +37,6 @@ class DQNAgent:
         self.memory.append((state, action, reward, next_state))
 
     def act(self, state):
-        if np.random.rand() <= self.epsilon:
-            return random.randrange(self.action_size)
         act_values = self.model.predict(state)          # Q values for each action
         return np.argmax(act_values[0])  # returns action
 
@@ -61,52 +57,32 @@ class DQNAgent:
     def save(self, name):
         self.model.save_weights(name)
 
-SaveCounter = 1
-if __name__ == "__main__":
 
-    # for visualization disable next two lines
-    os.environ['SDL_AUDIODRIVER'] = "dummy"           # Create a AUDIO DRIVER to not produce the pygame sound
-    os.environ["SDL_VIDEODRIVER"] = "dummy"           # Create a dummy window to not show the pygame window
+if __name__ == "__main__":
 
     env = envObj()
     env.PygameInitialize()
     state_size = env.ObservationSpace()
     action_size = env.ActionSpace()
     agent = DQNAgent(state_size, action_size)
-    # agent.load("./save/cartpole-dqn.h5")
+    agent.load("./Save/ARC_AVL_DQN.h5")
     batch_size = 32
 
     state = env.Reset()
     state = np.reshape(state, [1, state_size])
-    episode_rewards = [0.0]
-    for step in range(FRAMES):
+
+    frameidx = 0
+    while True:
+
+        frameidx += 1
+        print("Frame: ", frameidx)
         action = agent.act(state)
-        next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount , done = env.update(action,True)
+        next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount, done = env.update(action,False)
         next_state = np.reshape(next_state, [1, state_size])
         agent.remember(state, action, reward, next_state)
         state = next_state
+        print("Accuracy ", round(PassedCarsCount / (PassedCarsCount + HitCarsCount)*100,2),"%")
+        time.sleep(0.1)
 
-        episode_rewards[-1] += reward
-
-        if done:
-            Accuracy = round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100, 2)
-            print("Step: ", step, "   Accuracy: ", Accuracy, "%","   Episode reward: ", episode_rewards[-1])
-            episode_rewards.append(0.0)
-
-        if len(agent.memory) > batch_size:
-            agent.replay(batch_size)
-            if step % SAVE_FREQ == 0:
-                agent.save("./Save/ARC_AVL_DQN_{}.h5".format(SaveCounter))
-                print('********************* model is saved: ./Save/ARC_AVL_DQN_{}.h5*****************'.format(SaveCounter))
-                SaveCounter += 1
         if IsTerminated:
-            print("Training is terminated manually")
             break
-
-    # if e % 10 == 0:
-    agent.save("./Save/ARC_AVL_DQN.h5")
-    print("The training is finished. Data is saved in /Save/ARC_AVL_DQN.h5")
-    print("Hit cars: ", HitCarsCount)
-    print("Passed cars: ", PassedCarsCount)
-    print("Accuracy ", round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100,2),"%")
-    print("Use python ARC_AVL_Test to test the agent")
