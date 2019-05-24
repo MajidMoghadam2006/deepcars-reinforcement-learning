@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
         if done:
             Accuracy = round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100, 2)
-            print("Step: ", step, "   Accuracy: ", Accuracy, "%","   Epsode reward: ", episode_rewards[-1])
+            print("Step: ", step, "   Accuracy: ", Accuracy, "%","   Episode reward: ", episode_rewards[-1])
             episode_rewards.append(0.0)
 
         if len(agent.memory) > batch_size:
