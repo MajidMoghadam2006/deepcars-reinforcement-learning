@@ -1,2 +1,3 @@
 /venv/*
+/Save/ARC_AVL_DQN_*
 __pycache__/
