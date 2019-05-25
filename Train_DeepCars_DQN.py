@@ -81,6 +81,7 @@ if __name__ == "__main__":
     state = np.reshape(state, [1, state_size])
     episode_rewards = [0.0]
     episode_steps = []
+    Accuracies = []
     for step in range(MAX_STEPS):
         action = agent.act(state)
         next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount , done = env.update(action,True)
@@ -93,6 +94,7 @@ if __name__ == "__main__":
         if done:
             episode_steps.append(step)
             Accuracy = round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100, 2)
+            Accuracies.append(Accuracy)
             print("Step: ", step, "   Accuracy: ", Accuracy, "%","   Episode reward: ", episode_rewards[-1])
             episode_rewards.append(0.0)
 
@@ -106,10 +108,7 @@ if __name__ == "__main__":
             print("Training is terminated manually")
             break
 
-    print(len(episode_steps))
-    print(len(episode_rewards))
     del episode_rewards[-1] # Remove last reward as the episode is unfinished
-    print(len(episode_rewards))
     agent.save("./Save/ARC_AVL_DQN.h5")
     print("The training is finished. Last model is saved in /Save/ARC_AVL_DQN.h5")
     print("Hit cars: ", HitCarsCount)
@@ -117,6 +116,6 @@ if __name__ == "__main__":
     print("Accuracy ", round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100,2),"%")
     print("Use python Test_DeepCars_DQN.py to test the agent")
     # Save log file:
-    dict = {'episode steps': episode_steps,'episode reward': episode_rewards}
+    dict = {'episode steps': episode_steps,'episode reward': episode_rewards, 'accuracy': Accuracies}
     df = pd.DataFrame(dict)
     df.to_csv('./Save/Training_Log.csv')
