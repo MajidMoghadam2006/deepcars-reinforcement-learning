@@ -88,10 +88,7 @@ class GridWorld:
         return 3                    # Action vector size: [Left Stay Right]
 
     def Reset(self):                # Get initial state
-        StateVec = []
-        for i in range(0, NoOfLanes + 1):
-            StateVec.append(MaxCarsInLane - 2)  # [Player Lane Number  ,   Distance to the car in front in lane (i) ]
-        StateVec[0] = self.PlayerLane
+        StateVec, _, _, _, _, _ = self.update(1)
         return StateVec
 
     def WaitForPlayerToPressKey(self):
@@ -178,7 +175,7 @@ class GridWorld:
 
         print('The game has initiated')
 
-    def update(self,ActionIndex,TrainingFlag):
+    def update(self,ActionIndex,TrainingFlag=False):
 
         Action = ActionList[ActionIndex]        # Pick the action from action list
 

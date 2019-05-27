@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import random
+import random, os
 import numpy as np
 from DeepCars import GridWorld as envObj
 from collections import deque
@@ -59,6 +59,10 @@ class DQNAgent:
 
 
 if __name__ == "__main__":
+
+    # for visualization disable next two lines
+    os.environ['SDL_AUDIODRIVER'] = "dummy"  # Create a AUDIO DRIVER to not produce the pygame sound
+    os.environ["SDL_VIDEODRIVER"] = "dummy"  # Create a dummy window to not show the pygame window
 
     env = envObj()
     env.PygameInitialize()
