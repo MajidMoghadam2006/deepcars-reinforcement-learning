@@ -1,4 +1,5 @@
-# v2: observation: occupancy grid
+# v1: observation closest car
+
 
 import pygame, random, os, time, sys
 import  numpy as np
@@ -25,7 +26,7 @@ LineWidth = 5  # Width of the lines in between the lanes (dashed lines)
 LineHeight = 25
 WallWidth = 50  # Width of the walls on the left and right sides
 NoOfLanes = 5
-MaxCarsInLane = 10  # Maximum number of cars vertically in one lane (for window size setting)
+MaxCarsInLane = 5  # Maximum number of cars vertically in one lane (for window size setting)
 
 ActionList = ['Left', 'Stay', 'Right']
 
@@ -75,7 +76,7 @@ class GridWorld:
         self.PassedCarsCount = 1  # No. of cars that the agent has passed (start from 1 to avoid deving to 0 in SuccessRate)
         self.HitCarsCount = 0  # No. of cars that are hit by player
         self.OtherCarsVec = []
-        self.PlayerLane = round((NoOfLanes - 1) / 2)
+        self.PlayerLane = int(round((NoOfLanes - 1) / 2))
         self.PlayerRect = 0
 
         self.state_size = self.ObservationSpace()
@@ -86,15 +87,13 @@ class GridWorld:
         # sys.exit()
 
     def ObservationSpace(self):
-        return NoOfLanes*(MaxCarsInLane-1) + NoOfLanes # +NoOfLanes because the first NoOfLanes elements denote the PlayerLane
+        return NoOfLanes+1          # State vector size
 
     def ActionSpace(self):
         return 3                    # Action vector size: [Left Stay Right]
 
     def Reset(self):                # Get initial state
-        EnvMat = np.zeros(((MaxCarsInLane - 1), NoOfLanes))
-        StateVec = np.append(np.zeros(NoOfLanes), EnvMat.flatten())
-        StateVec[self.PlayerLane] = 1
+        StateVec, _, _, _, _, _ = self.update(1)
         obs = np.reshape(StateVec, [1, self.state_size])
         return obs
 
@@ -182,7 +181,7 @@ class GridWorld:
 
         print('The game has initiated')
 
-    def update(self,ActionIndex,TrainingFlag):
+    def update(self,ActionIndex,TrainingFlag=False):
 
         Action = ActionList[ActionIndex]        # Pick the action from action list
 
@@ -231,31 +230,24 @@ class GridWorld:
         # ==================================================================================================================
         # -----------------------------------------------State and reward---------------------------------------------------
         # ==================================================================================================================
-        # Calulate environment matrix to create a state vector of the world
-
-        # Initialize environment matrix
-        EnvMat = np.zeros(((MaxCarsInLane - 1), NoOfLanes))
-
-        # Fill my car grid as 1 in environment matrix
-        # EnvMat[MaxCarsInLane - 2, self.PlayerLane] = 1
+        StateVec = []
+        for i in range(0,NoOfLanes+1):
+            StateVec.append(MaxCarsInLane - 2)      # [Player Lane Number  ,   Distance to the car in front in lane (i) ]
+        StateVec[0] = self.PlayerLane
 
         for Car in self.OtherCarsVec:
-            EnvMat[MaxCarsInLane - Car['YCoord'] - 2, Car['XCoord']] = 1
-
-        # State vector: [[0 0 1 0 0] , flattened environment matrix]
-        # First elements denote the player lane
-
-        StateVec = np.append(np.zeros(NoOfLanes), EnvMat.flatten())
-        StateVec[self.PlayerLane] = 1
+            if Car['YCoord'] < StateVec[Car['XCoord']+1]:
+            # Car['YCoord'] < StateVec[Car['XCoord']+1]:  ===>  For more than one car in the same lane, select the closer one
+                StateVec[Car['XCoord']+1] = Car['YCoord']    # Number of grid rectangles existing in between (including car rectangle)
         obs = np.reshape(StateVec, [1, self.state_size])
 
+        done =False
         if self.PlayerHasHitBaddie(self.PlayerRect,self.OtherCarsVec):
-            done = True
-            Reward = -1000
+            Reward = -100
             self.PassedCarsCount -= 1
             self.HitCarsCount += 1
+            done = True
         else:
-            done = False
             Reward = 1
 
         # =======================================Draw the game world on the window===========================================
