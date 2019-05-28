@@ -176,7 +176,7 @@ if __name__ == "__main__":
             break
 
     del episode_rewards[-1]  # Remove last reward as the episode is unfinished
-    agent.save("./Save/ARC_AVL_DQN.h5")
+    agent.save("./Save/ARC_AVL_DDQN.h5")
     print("The training is finished. Last model is saved in /Save/ARC_AVL_DQN.h5")
     print("Hit cars: ", HitCarsCount)
     print("Passed cars: ", PassedCarsCount)
