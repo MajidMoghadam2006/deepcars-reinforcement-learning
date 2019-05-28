@@ -15,4 +15,4 @@ export PYTHONPATH=/hb/home/mamoghad/Scripts/deepcars_DQN_initial_version/venv/li
 
 cd /hb/home/mamoghad/Scripts/deepcars_DQN_initial_version/
 
-python Train_DeepCars_DQN.py
+python Train_DeepCars_DDQN.py
