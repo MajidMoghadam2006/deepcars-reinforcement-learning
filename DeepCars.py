@@ -127,7 +127,7 @@ class GridWorld:
         pygame.init()
         self.MainClock = pygame.time.Clock()
         self.WindowSurface = pygame.display.set_mode((WindowWidth, WindowHeight))
-        pygame.display.set_caption('Deep Cars Grid World (ITUarc)')
+        pygame.display.set_caption('Deep Cars Grid World')
         pygame.mouse.set_visible(False)
         self.font = pygame.font.SysFont(None, 30)
 
