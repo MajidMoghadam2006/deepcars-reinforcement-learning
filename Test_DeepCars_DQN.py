@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     dict = {'eps_rew': episode_rew}
     df = pd.DataFrame(dict)
-    df.to_csv('Save/Test_log/Test_Log.csv')
+    df.to_csv('Test_log/Test_Log.csv')
 
     import matplotlib.pyplot as plt
 
