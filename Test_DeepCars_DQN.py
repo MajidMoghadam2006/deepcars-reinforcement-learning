@@ -8,6 +8,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 import time, sys
 
+MAX_EPISODE = 100
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
@@ -75,18 +76,34 @@ if __name__ == "__main__":
     state = env.Reset()
     state = np.reshape(state, [1, state_size])
 
-    frameidx = 0
+    episode_rew = [0.0]
     while True:
-
-        frameidx += 1
-        print("Frame: ", frameidx)
         action = agent.act(state)
         next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount, done = env.update(action,False)
         next_state = np.reshape(next_state, [1, state_size])
-        agent.remember(state, action, reward, next_state)
+        episode_rew[-1] += reward
+        if done:
+            print(f'episode_rew={episode_rew[-1]}')
+            episode_rew.append(0.0)
+            next_state = env.Reset()
+            next_state = np.reshape(next_state, [1, state_size])
         state = next_state
-        print("Accuracy ", round(PassedCarsCount / (PassedCarsCount + HitCarsCount)*100,2),"%")
-        time.sleep(0.1)
-
-        if IsTerminated:
+        if len(episode_rew) >= MAX_EPISODE:
             break
+
+    print(f'episode mean rewards{np.mean(episode_rew)}')
+    import pandas as pd
+
+    dict = {'eps_rew': episode_rew}
+    df = pd.DataFrame(dict)
+    df.to_csv('Save/Test_log/Test_Log.csv')
+
+    import matplotlib.pyplot as plt
+
+    plt.figure()
+    plt.plot(episode_rew, zorder=1)  # on top
+    plt.title('Episode rewards')
+    plt.show()
+    plt.clf()  # Here is another path
+
+    env.close()
