@@ -105,5 +105,3 @@ if __name__ == "__main__":
     plt.title('Episode rewards')
     plt.show()
     plt.clf()  # Here is another path
-
-    env.close()
