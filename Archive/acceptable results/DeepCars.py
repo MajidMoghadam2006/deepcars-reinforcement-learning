@@ -1,6 +1,3 @@
-# v1: observation closest car
-
-
 import pygame, random, os, time, sys
 import  numpy as np
 from pygame.locals import *
@@ -79,8 +76,6 @@ class GridWorld:
         self.PlayerLane = int(round((NoOfLanes - 1) / 2))
         self.PlayerRect = 0
 
-        self.state_size = self.ObservationSpace()
-
     def Terminate(self):
         pygame.quit()
         print("The game is terminated")
@@ -94,8 +89,7 @@ class GridWorld:
 
     def Reset(self):                # Get initial state
         StateVec, _, _, _, _, _ = self.update(1)
-        obs = np.reshape(StateVec, [1, self.state_size])
-        return obs
+        return StateVec
 
     def WaitForPlayerToPressKey(self):
         print("Press a key to continue or Esc to terminate")
@@ -239,7 +233,6 @@ class GridWorld:
             if Car['YCoord'] < StateVec[Car['XCoord']+1]:
             # Car['YCoord'] < StateVec[Car['XCoord']+1]:  ===>  For more than one car in the same lane, select the closer one
                 StateVec[Car['XCoord']+1] = Car['YCoord']    # Number of grid rectangles existing in between (including car rectangle)
-        obs = np.reshape(StateVec, [1, self.state_size])
 
         done =False
         if self.PlayerHasHitBaddie(self.PlayerRect,self.OtherCarsVec):
@@ -300,7 +293,7 @@ class GridWorld:
                     IsTerminated = True
                     self.Terminate()
 
-        return obs, Reward, IsTerminated, self.HitCarsCount, self.PassedCarsCount, done
+        return StateVec, Reward, IsTerminated, self.HitCarsCount, self.PassedCarsCount, done
 
 if __name__ == "__main__":
 

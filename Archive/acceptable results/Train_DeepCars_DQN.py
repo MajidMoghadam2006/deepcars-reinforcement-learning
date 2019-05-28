@@ -78,6 +78,7 @@ if __name__ == "__main__":
     batch_size = 32
 
     state = env.Reset()
+    state = np.reshape(state, [1, state_size])
     episode_rewards = [0.0]
     episode_steps = []
     Accuracies = []

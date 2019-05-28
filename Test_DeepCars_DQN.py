@@ -74,19 +74,16 @@ if __name__ == "__main__":
     batch_size = 32
 
     state = env.Reset()
-    state = np.reshape(state, [1, state_size])
 
     episode_rew = [0.0]
     while True:
         action = agent.act(state)
         next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount, done = env.update(action,False)
-        next_state = np.reshape(next_state, [1, state_size])
         episode_rew[-1] += reward
         if done:
             print(f'episode_rew={episode_rew[-1]}')
             episode_rew.append(0.0)
             next_state = env.Reset()
-            next_state = np.reshape(next_state, [1, state_size])
         state = next_state
         if len(episode_rew) >= MAX_EPISODE:
             break
