@@ -70,20 +70,21 @@ class DQNAgent:
     def replay(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)
         LossSum = 0
+        ValueSum = 0
         for state, action, reward, next_state in minibatch:
             Q_target = self.model.predict(state)
-            V_Value = Q_target.max()
+            ValueSum += Q_target.max()
             a = self.model.predict(next_state)[0]
             t = self.target_model.predict(next_state)[0]
             Q_Est = reward + self.gamma * t[np.argmax(a)]
-            Loss = (Q_target[0][action] - Q_Est) ** 2
-            LossSum = LossSum + Loss
+            LossSum += (Q_target[0][action] - Q_Est) ** 2
             Q_target[0][action] = Q_Est
             self.model.fit(state, Q_target, epochs=EPOCHES, verbose=0)
         LossAvr = LossSum / batch_size
+        ValueAvr = ValueSum / batch_size
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-        return LossAvr, V_Value
+        return LossAvr, ValueAvr
 
     def load(self, name):
         self.model.load_weights(name)
@@ -99,14 +100,13 @@ if __name__ == "__main__":
     os.environ["SDL_VIDEODRIVER"] = "dummy"  # Create a dummy window to not show the pygame window
 
     # open text file to save information
-    if not os.path.exists("data/save.dat"):
-        f = open("Save/Data.dat", 'w')
-        f.write(str("Time   "))
-        f.write(str("Accuracy   "))
-        f.write(str("LastHitFrame   "))
-        f.write(str("V value   "))
-        f.write(str("AvrLoss   "))
-        f.write(str("\n"))
+    f = open("Save/Data_DDQN.dat", 'w')
+    f.write(str("Time   "))
+    f.write(str("Accuracy   "))
+    f.write(str("LastHitFrame   "))
+    f.write(str("AvrValue   "))
+    f.write(str("AvrLoss   "))
+    f.write(str("\n"))
 
     env = envObj()
     env.PygameInitialize()
@@ -121,10 +121,10 @@ if __name__ == "__main__":
     LossAvr = 0
     HitCarsCount_ = 0
     HitFrmCounter = 0
-    V_Value = 0
+    ValueAvr = 0
 
     SaveCounter = 1
-    episode_rewards = [0.0]
+    episode_rewards = [0.0, 0.0]
     episode_steps = []
     Accuracies = []
     for agent.steps in range(MAX_STEPS):
@@ -142,9 +142,9 @@ if __name__ == "__main__":
         Accuracy = round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100, 2)
 
         if len(agent.memory) > batch_size:
-            LossAvr, V_Value = agent.replay(batch_size)
+            LossAvr, ValueAvr = agent.replay(batch_size)
             if agent.steps % SAVE_FREQ == 0:
-                agent.save("./Save/ARC_AVL_DQN_{}.h5".format(SaveCounter))
+                agent.save("./Save/ARC_AVL_DDQN_{}.h5".format(SaveCounter))
                 print('********************* model is saved: ./Save/ARC_AVL_DQN_{}.h5*****************'.format(SaveCounter))
                 SaveCounter += 1
 
@@ -153,14 +153,14 @@ if __name__ == "__main__":
               "   Time (s): ", "%.2f" % t1,
               "   Accuracy ", "%.2f" % Accuracy, "%",
               "   No hit frames: ", HitFrmCounter,
-              "   Episode reward: ", episode_rewards[-1])
+              "   Episode reward: ", episode_rewards[-2])
         f.write(str(t1))
         f.write(str("     "))
         f.write(str(Accuracy))
         f.write(str("     "))
         f.write(str(HitFrmCounter))
         f.write(str("     "))
-        f.write(str(round(V_Value, 2)))
+        f.write(str(round(ValueAvr, 2)))
         f.write(str("     "))
         f.write(str(round(LossAvr, 2)))
         f.write(str("\n"))
@@ -175,14 +175,16 @@ if __name__ == "__main__":
             print("Training is terminated manually")
             break
 
-    del episode_rewards[-1]  # Remove last reward as the episode is unfinished
+    for _ in range(len(episode_rewards) - len(Accuracies)):
+        del episode_rewards[0]  # Remove first elements of reward vector as initialized to zero
+
     agent.save("./Save/ARC_AVL_DDQN.h5")
-    print("The training is finished. Last model is saved in /Save/ARC_AVL_DQN.h5")
+    print("The training is finished. Last model is saved in /Save/ARC_AVL_DDQN.h5")
     print("Hit cars: ", HitCarsCount)
     print("Passed cars: ", PassedCarsCount)
     print("Accuracy ", round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100, 2), "%")
-    print("Use python Test_DeepCars_DQN.py to test the agent")
+    print("Use python Test_DeepCars_DDQN.py to test the agent")
     # Save log file:
     dict = {'episode steps': episode_steps, 'episode reward': episode_rewards, 'accuracy': Accuracies}
     df = pd.DataFrame(dict)
-    df.to_csv('./Save/Training_Log.csv')
+    df.to_csv('./Save/Training_Log_DDQN.csv')
