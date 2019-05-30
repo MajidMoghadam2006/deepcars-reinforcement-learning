@@ -6,6 +6,7 @@ from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
+from keras import backend as K
 import time, sys
 
 MAX_EPISODE = 100
@@ -22,15 +23,20 @@ class DQNAgent:
         self.learning_rate = 0.001
         self.model = self._build_model()
 
+    def huber_loss(self, target, prediction):
+        # sqrt(1+error^2)-1
+        error = prediction - target
+        return K.mean(K.sqrt(1 + K.square(error)) - 1, axis=-1)
+
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         model = Sequential()
-        model.add(Dense(32, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(64, activation='relu'))
-        model.add(Dense(64, activation='relu'))
+        model.add(Dense(16, input_dim=self.state_size, activation='relu'))
+        # model.add(Dense(16, activation='relu'))
+        # model.add(Dense(16, activation='relu'))
+        # model.add(Dense(64, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
-        model.compile(loss='mse',
+        model.compile(loss=self.huber_loss,
                       optimizer=Adam(lr=self.learning_rate))
         return model
 
