@@ -8,6 +8,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras import backend as K
 import time, sys
+import gym, gym_deepcars
 
 MAX_EPISODE = 100
 
@@ -71,25 +72,25 @@ if __name__ == "__main__":
     # os.environ['SDL_AUDIODRIVER'] = "dummy"  # Create a AUDIO DRIVER to not produce the pygame sound
     # os.environ["SDL_VIDEODRIVER"] = "dummy"  # Create a dummy window to not show the pygame window
 
-    env = envObj()
-    env.PygameInitialize()
+    env = gym.make('DeepCars-v0')
     state_size = env.ObservationSpace()
     action_size = env.ActionSpace()
     agent = DQNAgent(state_size, action_size)
     agent.load("./Save/ARC_AVL_DQN.h5")
     batch_size = 32
 
-    state = env.Reset()
+    state = env.reset()
 
     episode_rew = [0.0]
     while True:
         action = agent.act(state)
-        next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount, done = env.update(action,False)
+        next_state, reward, done, HitCarsCount, PassedCarsCount = env.step(action, True)
+        env.render()
         episode_rew[-1] += reward
         if done:
             print(f'episode_rew={episode_rew[-1]}')
             episode_rew.append(0.0)
-            next_state = env.Reset()
+            next_state = env.reset()
         state = next_state
         if len(episode_rew) >= MAX_EPISODE:
             break

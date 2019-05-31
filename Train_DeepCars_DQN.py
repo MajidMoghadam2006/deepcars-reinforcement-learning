@@ -8,6 +8,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras import backend as K
 import pandas as pd
+import gym, gym_deepcars
 
 MAX_STEPS = 100000
 SAVE_FREQ = 5000
@@ -80,15 +81,14 @@ if __name__ == "__main__":
     f.write(str("LastHitFrame   "))
     f.write(str("\n"))
 
-    env = envObj()
-    env.PygameInitialize()
+    env = gym.make('DeepCars-v0')
     state_size = env.ObservationSpace()
     action_size = env.ActionSpace()
     agent = DQNAgent(state_size, action_size)
     # agent.load("./save/cartpole-dqn.h5")
     batch_size = 32
 
-    state = env.Reset()
+    state = env.reset()
     t0 = time.time()
     HitCarsCount_ = 0
     HitFrmCounter = 0
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     for agent.steps in range(MAX_STEPS):
 
         action = agent.act(state)
-        next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount, done = env.update(action, True)
+        next_state, reward, done, HitCarsCount, PassedCarsCount = env.step(action, True)
         agent.remember(state, action, reward, next_state)
 
         episode_rewards[-1] += reward
@@ -136,10 +136,6 @@ if __name__ == "__main__":
             episode_rewards.append(0.0)
             Accuracies.append(Accuracy)
         state = next_state
-
-        if IsTerminated:
-            print("Training is terminated manually")
-            break
 
     for _ in range(len(episode_rewards)-len(Accuracies)):
         del episode_rewards[0]  # Remove first elements of reward vector as initialized to zero
