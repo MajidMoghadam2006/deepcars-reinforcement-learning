@@ -127,7 +127,7 @@ class GridWorld:
         pygame.init()
         self.MainClock = pygame.time.Clock()
         self.WindowSurface = pygame.display.set_mode((WindowWidth, WindowHeight))
-        pygame.display.set_caption('Deep Cars Grid World')
+        pygame.display.set_caption('Deep Cars Grid World (ITUarc)')
         pygame.mouse.set_visible(False)
         self.font = pygame.font.SysFont(None, 30)
 
@@ -251,7 +251,7 @@ class GridWorld:
 
         if self.PlayerHasHitBaddie(self.PlayerRect,self.OtherCarsVec):
             done = True
-            Reward = -1000
+            Reward = -1
             self.PassedCarsCount -= 1
             self.HitCarsCount += 1
         else:
