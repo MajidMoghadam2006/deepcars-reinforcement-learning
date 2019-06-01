@@ -115,6 +115,8 @@ class DeepCarsEnv(gym.Env):
                           'surface': pygame.transform.scale(RightWallImage, (WallWidth, 3 * WindowHeight))
                           }
 
+        self.PassedCarsCount = 1  # No. of cars that the agent has passed (start from 1 to avoid deving to 0 in SuccessRate)
+        self.HitCarsCount = 0  # No. of cars that are hit by player
         self.param_initialization()
 
     def param_initialization(self):
@@ -144,8 +146,6 @@ class DeepCarsEnv(gym.Env):
         self.state_size = self.ObservationSpace()
 
         self.CarAddCounter = AddNewCarRate
-        self.PassedCarsCount = 1  # No. of cars that the agent has passed (start from 1 to avoid deving to 0 in SuccessRate)
-        self.HitCarsCount = 0  # No. of cars that are hit by player
         self.OtherCarsVec = []
         self.PlayerLane = round((NoOfLanes - 1) / 2)
         self.PlayerRect = 0

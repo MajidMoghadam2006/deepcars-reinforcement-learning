@@ -85,6 +85,7 @@ if __name__ == "__main__":
     while True:
         action = agent.act(state)
         next_state, reward, done, HitCarsCount, PassedCarsCount = env.step(action, True)
+        # time.sleep(.2)
         env.render()
         episode_rew[-1] += reward
         if done:

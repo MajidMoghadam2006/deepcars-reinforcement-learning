@@ -12,6 +12,7 @@ import gym, gym_deepcars
 
 MAX_STEPS = 100000
 SAVE_FREQ = 5000
+EPISODIC_MEAN_FREQ = 100
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
@@ -42,8 +43,8 @@ class DQNAgent:
                       optimizer=Adam(lr=self.learning_rate))
         return model
 
-    def remember(self, state, action, reward, next_state):
-        self.memory.append((state, action, reward, next_state))
+    def remember(self, state, action, reward, next_state, done):
+        self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state):
         if np.random.rand() <= self.epsilon:
@@ -53,9 +54,12 @@ class DQNAgent:
 
     def replay(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)
-        for state, action, reward, next_state in minibatch:
-            Q_target = (reward + self.gamma *
-                      np.amax(self.model.predict(next_state)[0]))
+        for state, action, reward, next_state, done in minibatch:
+            if done:
+                Q_target = reward
+            else:
+                Q_target = (reward + self.gamma *
+                          np.amax(self.model.predict(next_state)[0]))
             Q_f = self.model.predict(state)
             Q_f[0][action] = Q_target
             self.model.fit(state, Q_f, epochs=1, verbose=0)
@@ -71,8 +75,8 @@ class DQNAgent:
 if __name__ == "__main__":
 
     # for visualization disable next two lines
-    os.environ['SDL_AUDIODRIVER'] = "dummy"  # Create a AUDIO DRIVER to not produce the pygame sound
-    os.environ["SDL_VIDEODRIVER"] = "dummy"  # Create a dummy window to not show the pygame window
+    # os.environ['SDL_AUDIODRIVER'] = "dummy"  # Create a AUDIO DRIVER to not produce the pygame sound
+    # os.environ["SDL_VIDEODRIVER"] = "dummy"  # Create a dummy window to not show the pygame window
 
     # open text file to save information
     f = open("Save/Data_DQN.dat", 'w')
@@ -94,16 +98,28 @@ if __name__ == "__main__":
     HitFrmCounter = 0
 
     SaveCounter = 1
-    episode_rewards = [0.0, 0.0]
+    episode_rewards = [0.0]
+    n_eps_mean = [0.0]
     episode_steps = []
     Accuracies = []
     for agent.steps in range(MAX_STEPS):
 
         action = agent.act(state)
         next_state, reward, done, HitCarsCount, PassedCarsCount = env.step(action, True)
-        agent.remember(state, action, reward, next_state)
+        # env.render()
+        agent.remember(state, action, reward, next_state, done)
 
         episode_rewards[-1] += reward
+
+        if done:
+            if len(episode_rewards) % EPISODIC_MEAN_FREQ == 0:
+                n_eps_mean.append( round(np.mean(episode_rewards[-EPISODIC_MEAN_FREQ-1:-1]), 2) )
+            next_state = env.reset()
+            episode_steps.append(agent.steps)
+            episode_rewards.append(0.0)
+            Accuracies.append(Accuracy)
+        state = next_state
+
         if HitCarsCount > HitCarsCount_:
             HitFrmCounter = 0
         else:
@@ -119,23 +135,19 @@ if __name__ == "__main__":
                 SaveCounter += 1
 
         t1 = round(time.time() - t0, 2)
-        print("Step: ", agent.steps,
-              "   Time (s): ", "%.2f" % t1,
-              "   Accuracy ", "%.2f" % Accuracy, "%",
-              "   No hit frames: ", HitFrmCounter,
-              "   Episode reward: ", episode_rewards[-2])
+        print("step: ", agent.steps,
+              "   eps: ", len(episode_rewards),
+              "   time (s): ", "%.2f" % t1,
+              "   accuracy ", "%.2f" % Accuracy, "%",
+              "   No collision: ", HitFrmCounter,
+              "   {}-eps mean: ".format(EPISODIC_MEAN_FREQ), n_eps_mean[-1])
+
         f.write(str(t1))
         f.write(str("     "))
         f.write(str(Accuracy))
         f.write(str("     "))
         f.write(str(HitFrmCounter))
         f.write(str("\n"))
-
-        if done:
-            episode_steps.append(agent.steps)
-            episode_rewards.append(0.0)
-            Accuracies.append(Accuracy)
-        state = next_state
 
     for _ in range(len(episode_rewards)-len(Accuracies)):
         del episode_rewards[0]  # Remove first elements of reward vector as initialized to zero
@@ -147,6 +159,9 @@ if __name__ == "__main__":
     print("Accuracy ", round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100, 2), "%")
     print("Use python Test_DeepCars_DQN.py to test the agent")
     # Save log file:
-    dict = {'episode steps': episode_steps, 'episode reward': episode_rewards, 'accuracy': Accuracies}
-    df = pd.DataFrame(dict)
+    dict1 = {'episode steps': episode_steps, 'episode reward': episode_rewards, 'accuracy': Accuracies}
+    df1 = pd.DataFrame(dict1)
+    dict2 = {'{}-eps mean: '.format(EPISODIC_MEAN_FREQ): n_eps_mean}
+    df2 = pd.DataFrame(dict2)
+    df = pd.concat([df1,df2], axis=1)
     df.to_csv('./Save/Training_Log_DQN.csv')
