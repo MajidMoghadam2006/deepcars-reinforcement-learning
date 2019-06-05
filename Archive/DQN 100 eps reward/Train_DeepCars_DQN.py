@@ -12,7 +12,7 @@ import gym, gym_deepcars
 
 MAX_STEPS = 100000
 SAVE_FREQ = 5000
-PRINT_FREQ = 1
+EPISODIC_MEAN_FREQ = 100
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
@@ -79,11 +79,11 @@ if __name__ == "__main__":
     # os.environ["SDL_VIDEODRIVER"] = "dummy"  # Create a dummy window to not show the pygame window
 
     # open text file to save information
-    # f = open("Save/Data_DQN.dat", 'w')
-    # f.write(str("Time   "))
-    # f.write(str("Accuracy   "))
-    # f.write(str("LastHitFrame   "))
-    # f.write(str("\n"))
+    f = open("Save/Data_DQN.dat", 'w')
+    f.write(str("Time   "))
+    f.write(str("Accuracy   "))
+    f.write(str("LastHitFrame   "))
+    f.write(str("\n"))
 
     env = gym.make('DeepCars-v0')
     state_size = env.ObservationSpace()
@@ -94,29 +94,45 @@ if __name__ == "__main__":
 
     state = env.reset()
     t0 = time.time()
+    HitCarsCount_ = 0
+    HitFrmCounter = 0
 
     SaveCounter = 1
     episode_rewards = [0.0]
     n_eps_mean = [0.0]
-    totalHitCars = 0
-    totalPassedCars = 0
-    dict = {'step': [], 'episode reward': [], 'accuracy': [], '100 eps mean': []}
-    df = pd.DataFrame(dict)
+    episode_steps = []
+    Accuracies = []
     for agent.steps in range(MAX_STEPS):
 
         action = agent.act(state)
         next_state, reward, done, HitCarsCount, PassedCarsCount = env.step(action, True)
         # env.render()
-        agent.remember(state, action, reward, next_state, done) # save to memory
-        state = next_state
+        agent.remember(state, action, reward, next_state, done)
+
         episode_rewards[-1] += reward
 
+        n_eps_mean.append(round(np.mean(episode_rewards[-EPISODIC_MEAN_FREQ - 1:-1]), 2))
+
         if done:
-            state = env.reset()
+            if len(episode_rewards) % EPISODIC_MEAN_FREQ == 0:
+                print("step: ", agent.steps,
+                      "   eps: ", len(episode_rewards),
+                      "   time (s): ", "%.2f" % t1,
+                      "   accuracy ", "%.2f" % Accuracy, "%",
+                      "   No collision: ", HitFrmCounter,
+                      "   {}-eps mean: ".format(EPISODIC_MEAN_FREQ), n_eps_mean[-1])
+            next_state = env.reset()
+            episode_steps.append(agent.steps)
             episode_rewards.append(0.0)
-            totalHitCars += HitCarsCount
-            totalPassedCars += PassedCarsCount
-            accuracy = round(totalPassedCars / (totalPassedCars + totalHitCars) * 100, 2)
+            Accuracies.append(Accuracy)
+        state = next_state
+
+        if HitCarsCount > HitCarsCount_:
+            HitFrmCounter = 0
+        else:
+            HitFrmCounter += 1
+        HitCarsCount_ = HitCarsCount
+        Accuracy = round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100, 2)
 
         if len(agent.memory) > batch_size:
             agent.replay(batch_size)
@@ -125,32 +141,34 @@ if __name__ == "__main__":
                 print('********************* model is saved: ./Save/ARC_AVL_DQN_{}.h5*****************'.format(SaveCounter))
                 SaveCounter += 1
 
-        mean_100ep_reward = round(np.mean(episode_rewards[-101:-1]), 1)
-        num_episodes = len(episode_rewards)
+        t1 = round(time.time() - t0, 2)
+        # print("step: ", agent.steps,
+        #       "   eps: ", len(episode_rewards),
+        #       "   time (s): ", "%.2f" % t1,
+        #       "   accuracy ", "%.2f" % Accuracy, "%",
+        #       "   No collision: ", HitFrmCounter,
+        #       "   {}-eps mean: ".format(EPISODIC_MEAN_FREQ), n_eps_mean[-1])
 
-        if done and num_episodes % PRINT_FREQ == 0:
-            t1 = round(time.time() - t0, 2)     # time (s) spend since the start of training
-            print("eps: ", num_episodes,
-                  "   step: ", agent.steps,
-                  "   time (s): ", "%.2f" % t1,
-                  "   accuracy ", "%.2f" % accuracy, "%"
-                  "   eps rew: ", "%d" % episode_rewards[-2],
-                  "   mean 100 eps rew: ", mean_100ep_reward)
-            # Save log file:
-            df = df.append({'step': agent.steps, 'episode reward': episode_rewards[-2], \
-                            'accuracy': accuracy, '100 eps mean': mean_100ep_reward, \
-                            'time': "%2f" % t1}, ignore_index=True)
-            df.to_csv('./Save/Training_Log_DQN.csv')
-            # f.write(str(t1))
-            # f.write(str("     "))
-            # f.write(str(accuracy))
-            # f.write(str("     "))
-            # f.write(str(totalHitCars))
-            # f.write(str("\n"))
+        f.write(str(t1))
+        f.write(str("     "))
+        f.write(str(Accuracy))
+        f.write(str("     "))
+        f.write(str(HitFrmCounter))
+        f.write(str("\n"))
+
+    for _ in range(len(episode_rewards)-len(Accuracies)):
+        del episode_rewards[0]  # Remove first elements of reward vector as initialized to zero
 
     agent.save("./Save/ARC_AVL_DQN.h5")
     print("The training is finished. Last model is saved in /Save/ARC_AVL_DQN.h5")
-    print("Hit cars: ", totalHitCars)
-    print("Passed cars: ", totalPassedCars)
-    print("Accuracy ", accuracy, "%")
+    print("Hit cars: ", HitCarsCount)
+    print("Passed cars: ", PassedCarsCount)
+    print("Accuracy ", round(PassedCarsCount / (PassedCarsCount + HitCarsCount) * 100, 2), "%")
     print("Use python Test_DeepCars_DQN.py to test the agent")
+    # Save log file:
+    dict1 = {'episode steps': episode_steps, 'episode reward': episode_rewards, 'accuracy': Accuracies}
+    df1 = pd.DataFrame(dict1)
+    dict2 = {'{}-eps mean: '.format(EPISODIC_MEAN_FREQ): n_eps_mean}
+    df2 = pd.DataFrame(dict2)
+    df = pd.concat([df1,df2], axis=1)
+    df.to_csv('./Save/Training_Log_DQN.csv')

@@ -115,8 +115,6 @@ class DeepCarsEnv(gym.Env):
                           'surface': pygame.transform.scale(RightWallImage, (WallWidth, 3 * WindowHeight))
                           }
 
-        self.PassedCarsCount = 1  # No. of cars that the agent has passed (start from 1 to avoid deving to 0 in SuccessRate)
-        self.HitCarsCount = 0  # No. of cars that are hit by player
         self.param_initialization()
 
     def param_initialization(self):
@@ -125,6 +123,8 @@ class DeepCarsEnv(gym.Env):
         self.font = 0
         self.LineRecSamples = []
         self.HorizLineRecSamples = []
+        self.PassedCarsCount = 0  # No. of cars that the agent has passed
+        self.HitCarsCount = 0  # No. of cars that are hit by player
 
         # If you want game frames as observation:
         # self.observation_space = spaces.Box(low=0, high=255, shape=(IMAGE_SCALE_WIDTH, IMAGE_SCALE_HEIGHT),
@@ -310,7 +310,7 @@ class DeepCarsEnv(gym.Env):
             Reward = -1
             done = True
             # print('Passed cars: {}'.format(self.PassedCarsCount))
-            self.PassedCarsCount -= 1
+            # self.PassedCarsCount -= 1
             self.HitCarsCount += 1
         else:
             done = False
@@ -364,7 +364,8 @@ class DeepCarsEnv(gym.Env):
             self.RightWall['rec'].topleft = [WindowWidth - WallWidth, -2 * WindowHeight]
 
         # ==============================================Environment update==================================================
-        SuccessRate = round(100 * self.PassedCarsCount / (self.PassedCarsCount + self.HitCarsCount), 2)
+        SuccessRate = round(100 * self.PassedCarsCount / (self.PassedCarsCount + self.HitCarsCount + 0.01), 2)
+        # + 0.01 to avoid division by zero
 
         self.DrawText('Accuracy: %% %s' % (SuccessRate), self.font, DefaultTextColor, self.WindowSurface,
                       WallWidth + SpaceWidth,
