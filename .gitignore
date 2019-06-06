@@ -2,4 +2,4 @@
 /Save/*
 # exception to the rule
 !Save/ARC_AVL_* 
-__pycache__/
+__pycache__/*
