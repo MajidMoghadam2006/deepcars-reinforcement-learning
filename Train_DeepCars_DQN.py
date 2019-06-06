@@ -16,6 +16,7 @@ PRINT_FREQ = 1
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
+        self.steps = 0
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
