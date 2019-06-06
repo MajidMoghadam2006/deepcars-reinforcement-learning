@@ -1,3 +1,5 @@
 /venv/*
-/Save/
+/Save/*
+# exception to the rule
+!Save/ARC_AVL_* 
 __pycache__/
