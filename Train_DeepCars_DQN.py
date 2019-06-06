@@ -14,6 +14,15 @@ MAX_STEPS = 100000
 SAVE_FREQ = 5000
 PRINT_FREQ = 1
 
+import datetime
+temp_file_name = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+os.mkdir('./Save/{}'.format(temp_file_name))
+logger_dir = './Save/' + temp_file_name
+
+# Huber loss is used for for the error clipping, as discussed in DeepMind human-level paper
+# The idea taken from https://jaromiru.com/2016/10/12/lets-make-a-dqn-debugging/
+# And codes from https://github.com/jaara/AI-blog/blob/master/CartPole-DQN.py
+
 class DQNAgent:
     def __init__(self, state_size, action_size):
         self.steps = 0
@@ -42,6 +51,11 @@ class DQNAgent:
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss=self.huber_loss,
                       optimizer=Adam(lr=self.learning_rate))
+        # Save model summary to file
+        from contextlib import redirect_stdout
+        with open(logger_dir + '/modelsummary.txt', 'w') as f:
+            with redirect_stdout(f):
+                model.summary()
         return model
 
     def remember(self, state, action, reward, next_state, done):
@@ -90,7 +104,6 @@ if __name__ == "__main__":
     state_size = env.ObservationSpace()
     action_size = env.ActionSpace()
     agent = DQNAgent(state_size, action_size)
-    # agent.load("./save/cartpole-dqn.h5")
     batch_size = 32
 
     state = env.reset()
@@ -101,6 +114,7 @@ if __name__ == "__main__":
     n_eps_mean = [0.0]
     totalHitCars = 0
     totalPassedCars = 0
+    accuracy = 0
     dict = {'step': [], 'episode reward': [], 'accuracy': [], '100 eps mean': []}
     df = pd.DataFrame(dict)
     for agent.steps in range(MAX_STEPS):
@@ -122,8 +136,8 @@ if __name__ == "__main__":
         if len(agent.memory) > batch_size:
             agent.replay(batch_size)
             if agent.steps % SAVE_FREQ == 0:
-                agent.save("./Save/ARC_AVL_DQN_{}.h5".format(SaveCounter))
-                print('********************* model is saved: ./Save/ARC_AVL_DQN_{}.h5*****************'.format(SaveCounter))
+                agent.save(logger_dir + "/ARC_AVL_DQN_{}.h5".format(SaveCounter))
+                print('********************* model is saved: .../ARC_AVL_DQN_{}.h5*****************'.format(SaveCounter))
                 SaveCounter += 1
 
         mean_100ep_reward = round(np.mean(episode_rewards[-101:-1]), 1)
@@ -141,7 +155,7 @@ if __name__ == "__main__":
             df = df.append({'step': agent.steps, 'episode reward': episode_rewards[-2], \
                             'accuracy': accuracy, '100 eps mean': mean_100ep_reward, \
                             'time': "%2f" % t1}, ignore_index=True)
-            df.to_csv('./Save/Training_Log_DQN.csv')
+            df.to_csv(logger_dir + '/Training_Log_DQN.csv')
             # f.write(str(t1))
             # f.write(str("     "))
             # f.write(str(accuracy))
@@ -149,8 +163,8 @@ if __name__ == "__main__":
             # f.write(str(totalHitCars))
             # f.write(str("\n"))
 
-    agent.save("./Save/ARC_AVL_DQN.h5")
-    print("The training is finished. Last model is saved in /Save/ARC_AVL_DQN.h5")
+    agent.save(logger_dir + "/ARC_AVL_DQN.h5")
+    print("The training is finished. Last model is saved in {}/ARC_AVL_DQN.h5".format(logger_dir))
     print("Hit cars: ", totalHitCars)
     print("Passed cars: ", totalPassedCars)
     print("Accuracy ", accuracy, "%")

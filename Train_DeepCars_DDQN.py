@@ -16,6 +16,11 @@ TARGET_UPDATE_FREQUENCY = 100
 EPOCHES = 1
 PRINT_FREQ = 1
 
+import datetime
+temp_file_name = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+os.mkdir('./Save/{}'.format(temp_file_name))
+logger_dir = './Save/' + temp_file_name
+
 # Huber loss is used for for the error clipping, as discussed in DeepMind human-level paper
 # The idea taken from https://jaromiru.com/2016/10/12/lets-make-a-dqn-debugging/
 # And codes from https://github.com/jaara/AI-blog/blob/master/CartPole-DQN.py
@@ -50,6 +55,11 @@ class DDQNAgent:
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss=self.huber_loss,
                       optimizer=Adam(lr=self.learning_rate))
+        # Save model summary to file
+        from contextlib import redirect_stdout
+        with open(logger_dir + '/modelsummary.txt', 'w') as f:
+            with redirect_stdout(f):
+                model.summary()
         return model
 
     def update_target_model(self):
@@ -146,8 +156,8 @@ if __name__ == "__main__":
         if len(agent.memory) > batch_size:
             agent.replay(batch_size)
             if agent.steps % SAVE_FREQ == 0:
-                agent.save("./Save/ARC_AVL_DDQN_{}.h5".format(SaveCounter))
-                print('********************* model is saved: ./Save/ARC_AVL_DDQN_{}.h5*****************'.format(SaveCounter))
+                agent.save(logger_dir + "/ARC_AVL_DDQN_{}.h5".format(SaveCounter))
+                print('********************* model is saved: .../ARC_AVL_DDQN_{}.h5*****************'.format(SaveCounter))
                 SaveCounter += 1
 
         mean_100ep_reward = round(np.mean(episode_rewards[-101:-1]), 1)
@@ -165,7 +175,7 @@ if __name__ == "__main__":
             df = df.append({'step': agent.steps, 'episode reward': episode_rewards[-2], \
                             'accuracy': accuracy, '100 eps mean': mean_100ep_reward, \
                             'time': "%2f" % t1}, ignore_index=True)
-            df.to_csv('./Save/Training_Log_DDQN.csv')
+            df.to_csv(logger_dir + '/Training_Log_DDQN.csv')
             # f.write(str(t1))
             # f.write(str("     "))
             # f.write(str(accuracy))
@@ -173,8 +183,8 @@ if __name__ == "__main__":
             # f.write(str(totalHitCars))
             # f.write(str("\n"))
 
-    agent.save("./Save/ARC_AVL_DDQN.h5")
-    print("The training is finished. Last model is saved in /Save/ARC_AVL_DDQN.h5")
+    agent.save(logger_dir + "/ARC_AVL_DDQN.h5")
+    print("The training is finished. Last model is saved in {}/ARC_AVL_DDQN.h5".format(logger_dir))
     print("Hit cars: ", totalHitCars)
     print("Passed cars: ", totalPassedCars)
     print("Accuracy ", accuracy, "%")
