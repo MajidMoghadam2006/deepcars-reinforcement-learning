@@ -70,12 +70,14 @@ if __name__ == "__main__":
     episode_rew = [0.0]
     while True:
         action = agent.act(state)
-        next_state, reward, IsTerminated, HitCarsCount, PassedCarsCount, done = env.update(action,False)
+        next_state, reward, done, HitCarsCount, PassedCarsCount = env.step(action, True)
+        # time.sleep(.2)
+        env.render()
         episode_rew[-1] += reward
         if done:
             print(f'episode_rew={episode_rew[-1]}')
             episode_rew.append(0.0)
-            next_state = env.Reset()
+            next_state = env.reset()
         state = next_state
         if len(episode_rew) >= MAX_EPISODE:
             break
@@ -85,7 +87,7 @@ if __name__ == "__main__":
 
     dict = {'eps_rew': episode_rew}
     df = pd.DataFrame(dict)
-    df.to_csv('Test_log/Test_Log.csv')
+    df.to_csv('Test_log/Test_Log_DDQN.csv')
 
     import matplotlib.pyplot as plt
 
