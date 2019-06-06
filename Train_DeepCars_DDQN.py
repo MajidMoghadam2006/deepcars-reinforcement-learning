@@ -10,8 +10,8 @@ from keras import backend as K
 import pandas as pd
 import gym, gym_deepcars
 
-MAX_STEPS = 100000
-SAVE_FREQ = 5000
+MAX_STEPS = 1000000
+SAVE_FREQ = 10000
 TARGET_UPDATE_FREQUENCY = 100
 EPOCHES = 1
 PRINT_FREQ = 1
