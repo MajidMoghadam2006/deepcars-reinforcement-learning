@@ -8,6 +8,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras import backend as K
 import time, sys
+import gym, gym_deepcars
 
 MAX_EPISODE = 100
 
@@ -56,16 +57,14 @@ if __name__ == "__main__":
     # os.environ['SDL_AUDIODRIVER'] = "dummy"  # Create a AUDIO DRIVER to not produce the pygame sound
     # os.environ["SDL_VIDEODRIVER"] = "dummy"  # Create a dummy window to not show the pygame window
 
-
-    env = envObj()
-    env.PygameInitialize()
+    env = gym.make('DeepCars-v0')
     state_size = env.ObservationSpace()
     action_size = env.ActionSpace()
     agent = DQNAgent(state_size, action_size)
-    agent.load("./Save/ARC_AVL_DDQN.h5")
+    agent.load("./Save/ARC_AVL_DQN.h5")
     batch_size = 32
 
-    state = env.Reset()
+    state = env.reset()
 
     episode_rew = [0.0]
     while True:
@@ -87,7 +86,7 @@ if __name__ == "__main__":
 
     dict = {'eps_rew': episode_rew}
     df = pd.DataFrame(dict)
-    df.to_csv('Test_log/Test_Log_DDQN.csv')
+    df.to_csv('Test_log/Test_Log_DQN.csv')
 
     import matplotlib.pyplot as plt
 
