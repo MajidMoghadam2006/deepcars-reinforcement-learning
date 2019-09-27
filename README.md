@@ -33,3 +33,7 @@ Run evaluation for trained model using DQN:
 python3 Test_DeepCars_DQN.py
 ```
 
+
+Published work:
+M. Moghadam, G. H. Elkaim, A Hierarchical Architecture for Sequential Decision Making in Autonomous Driving using Deep Reinforcement Learning, in RWSDM workshop in ICML 2019.
+
