@@ -34,8 +34,9 @@ python3 Test_DeepCars_DQN.py
 ```
 
 
-To cite our ArXiv paper for this repo you may use the following BibTeX entry:
+To cite our [ArXiv paper](https://arxiv.org/abs/1906.08464) presented in ICML RWSDM 2019 workshop you may use the following BibTeX entry:
 
+```
 @misc{moghadam2019hierarchical,
     title={A Hierarchical Architecture for Sequential Decision-Making in Autonomous Driving using Deep Reinforcement Learning},
     author={Majid Moghadam and Gabriel Hugh Elkaim},
@@ -44,3 +45,4 @@ To cite our ArXiv paper for this repo you may use the following BibTeX entry:
     archivePrefix={arXiv},
     primaryClass={cs.RO}
 }
+```
