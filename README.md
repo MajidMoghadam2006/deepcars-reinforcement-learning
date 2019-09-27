@@ -34,7 +34,13 @@ python3 Test_DeepCars_DQN.py
 ```
 
 
-Published work:
-```ruby
-M. Moghadam, G. H. Elkaim, A Hierarchical Architecture for Sequential Decision Making in Autonomous Driving using Deep Reinforcement Learning, in RWSDM workshop in ICML 2019.
-```
+To cite our ArXiv paper for this repo you may use the following BibTeX entry:
+
+@misc{moghadam2019hierarchical,
+    title={A Hierarchical Architecture for Sequential Decision-Making in Autonomous Driving using Deep Reinforcement Learning},
+    author={Majid Moghadam and Gabriel Hugh Elkaim},
+    year={2019},
+    eprint={1906.08464},
+    archivePrefix={arXiv},
+    primaryClass={cs.RO}
+}
