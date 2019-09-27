@@ -34,7 +34,7 @@ python3 Test_DeepCars_DQN.py
 ```
 
 
-To cite our [ArXiv paper](https://arxiv.org/abs/1906.08464) presented in ICML RWSDM 2019 workshop you may use the following BibTeX entry:
+To cite our [ArXiv paper](https://arxiv.org/abs/1906.08464) presented in [ICML RWSDM 2019](https://realworld-sdm.github.io/) workshop you may use the following BibTeX entry:
 
 ```
 @misc{moghadam2019hierarchical,
